@@ -1,3 +1,4 @@
+#This project uses the following Fortune 500 data:
 CREATE TABLE fortune_companies (
     company_id INTEGER PRIMARY KEY,
     company_name TEXT,
@@ -56,15 +57,30 @@ VALUES
     ('Company JJ', 'Manufacturing', 370.0, 3100, 1, 20, 12, 7.6),
     ('Company KK', 'Healthcare', 150.2, 3400, 0, 16, 8, 5.3);
 
+#Question: How can we categorize companies into low, medium, and high revenue groups and count how many companies fall into each category?
+SELECT industry,
+    CASE 
+        WHEN revenue * 1000000 < 1000000 THEN 'Low Revenue'
+        WHEN revenue * 1000000 BETWEEN 1000000 AND 5000000 THEN 'Medium Revenue'
+        ELSE 'High Revenue'
+    END AS revenue_category,
+    COUNT(company_name) AS company_count
+FROM fortune_companies
+GROUP BY industry, revenue_category;
 
+#Question: Which companies have both high revenue and long employee tenure?
+SELECT company_name, revenue, avg_employee_tenure
+FROM fortune_companies
+WHERE revenue > (SELECT AVG(revenue) FROM fortune_companies) 
+  AND avg_employee_tenure > (SELECT AVG(avg_employee_tenure) FROM fortune_companies)
+ORDER BY revenue DESC, avg_employee_tenure DESC;
 
-
-
-
-
-
-
-
-
-
-Question: How can we categorize companies into low, medium, and high revenue groups and count how many companies fall into each category?
+#Question: Which industries have an average employee tenure of more than 5 years and offer more than 3 weeks of paid time off?
+SELECT 
+    industry,
+    ROUND(AVG(avg_employee_tenure), 2) AS avg_tenure,        
+    ROUND(AVG(paid_time_off_days), 2) AS avg_paid_time_off   
+FROM fortune_companies
+GROUP BY industry
+HAVING ROUND(AVG(avg_employee_tenure), 2) > 5              
+   AND ROUND(AVG(paid_time_off_days), 2) > 21;      
